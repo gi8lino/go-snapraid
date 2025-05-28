@@ -54,7 +54,7 @@ func ParseFlags(args []string, version string) (Options, error) {
 	thresholdRs := fs.Int("restore-threshold", 50, "Max allowed restored files before abort")
 
 	// Notifications
-	outputDir := fs.String("output-dir", "/var/log/snapraid-runner", "Directory to write JSON run results")
+	outputDir := fs.String("output-dir", "", "Directory to write JSON run results")
 	slackToken := fs.String("slack-token", "", "Slack bot token")
 	slackChan := fs.String("slack-channel", "", "Slack channel ID")
 

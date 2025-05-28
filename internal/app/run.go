@@ -46,8 +46,10 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 			"restored", result.Restored)
 	}
 
-	if err := snapraid.WriteResultJSON(flags.OutputDir, result, timestamp, runErr); err != nil {
-		logger.Warn("Failed to write result file", "error", err)
+	if flags.OutputDir != "" {
+		if err := snapraid.WriteResultJSON(flags.OutputDir, result, timestamp, runErr); err != nil {
+			logger.Warn("Failed to write result file", "error", err)
+		}
 	}
 
 	if flags.SlackToken != "" && flags.SlackChan != "" {
