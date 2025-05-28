@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - linux
+          - linux-arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up TinyGo
+        uses: acifani/setup-tinygo@v1
+        with:
+          tinygo-version: "0.37.0"
+
+      - name: Build with TinyGo (${{ matrix.target }})
+        run: |
+          mkdir -p build
+          GOFLAGS=-buildvcs=false tinygo build \
+            -o build/go-snapraid-${{ matrix.target }} \
+            -target=${{ matrix.target }} \
+            -no-debug \
+            ./cmd/go-snapraid/main.go
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-snapraid-${{ matrix.target }}
+          path: build/go-snapraid-${{ matrix.target }}

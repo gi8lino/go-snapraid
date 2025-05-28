@@ -1,0 +1,13 @@
+Comparing...
+add filme/XOXO\ \(2016\)/XOXO.2016.German.DL.1080p.WEB.x264.iNTERNAL-BiGiNT.mkv
+add filme/XOXO\ \(2016\)/XOXO.2016.German.DL.1080p.WEB.x264.iNTERNAL-BiGiNT.sfv
+
+   21146 equal
+       2 added
+       0 removed
+       0 updated
+       0 moved
+       0 copied
+       0 restored
+There are differences!
+
