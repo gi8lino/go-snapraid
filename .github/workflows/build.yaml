@@ -27,7 +27,6 @@ jobs:
           GOARCH=${{ matrix.arch }} \
           GOFLAGS=-buildvcs=false \
           tinygo build \
-            -target=linux \
             -no-debug \
             -o build/go-snapraid-linux-${{ matrix.arch }} \
             ./cmd/go-snapraid/main.go
