@@ -51,7 +51,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/go-snapraid-linux-amd64
-            artifacts/go-snapraid-linux-arm64
+            artifacts/go-snapraid-linux-amd64/go-snapraid-linux-amd64
+            artifacts/go-snapraid-linux-arm64/go-snapraid-linux-arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
