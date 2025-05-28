@@ -24,7 +24,7 @@ func Runner(flags flag.Options) (DiffResult, error) {
 	}
 
 	if flags.DryRun {
-		return DiffResult{}, nil
+		return result, nil
 	}
 
 	if err := runSync(flags); err != nil {

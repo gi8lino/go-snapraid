@@ -63,5 +63,6 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 	}
 
 	logger.Info("All done")
+
 	return nil
 }
