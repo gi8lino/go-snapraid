@@ -10,9 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target:
-          - linux
-          - linux-arm64
+        arch: [amd64, arm64]
 
     steps:
       - name: Checkout code
@@ -23,17 +21,19 @@ jobs:
         with:
           tinygo-version: "0.37.0"
 
-      - name: Build with TinyGo (${{ matrix.target }})
+      - name: Build with TinyGo for ${{ matrix.arch }}
         run: |
           mkdir -p build
-          GOFLAGS=-buildvcs=false tinygo build \
-            -o build/go-snapraid-${{ matrix.target }} \
-            -target=${{ matrix.target }} \
+          GOARCH=${{ matrix.arch }} \
+          GOFLAGS=-buildvcs=false \
+          tinygo build \
+            -target=linux \
             -no-debug \
+            -o build/go-snapraid-linux-${{ matrix.arch }} \
             ./cmd/go-snapraid/main.go
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: go-snapraid-${{ matrix.target }}
-          path: build/go-snapraid-${{ matrix.target }}
+          name: go-snapraid-linux-${{ matrix.arch }}
+          path: build/go-snapraid-linux-${{ matrix.arch }}
