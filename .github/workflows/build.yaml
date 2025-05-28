@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up TinyGo
-        uses: acifani/setup-tinygo@v1
+        uses: acifani/setup-tinygo@v2
         with:
           tinygo-version: "0.37.0"
 
