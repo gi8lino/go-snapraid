@@ -47,11 +47,25 @@ jobs:
         with:
           path: artifacts
 
+      - name: Package as .tar.gz and generate SHA256
+        run: |
+          cd artifacts
+          for arch in amd64 arm64; do
+            bin="go-snapraid-linux-$arch/go-snapraid-linux-$arch"
+            tar="go-snapraid-linux-$arch.tar.gz"
+            sha="go-snapraid-linux-$arch.sha256"
+
+            tar -czf "$tar" -C "go-snapraid-linux-$arch" "go-snapraid-linux-$arch"
+            sha256sum "$tar" > "$sha"
+          done
+
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/go-snapraid-linux-amd64/go-snapraid-linux-amd64
-            artifacts/go-snapraid-linux-arm64/go-snapraid-linux-arm64
+            artifacts/go-snapraid-linux-amd64.tar.gz
+            artifacts/go-snapraid-linux-amd64.sha256
+            artifacts/go-snapraid-linux-arm64.tar.gz
+            artifacts/go-snapraid-linux-arm64.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
