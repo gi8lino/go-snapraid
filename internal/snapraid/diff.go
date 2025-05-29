@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+const (
+	summaryRx string = `(?i)^(\d+)\s+(equal|added|removed|updated|moved|copied|restored)$`
+	changeRx  string = `(?i)^(add|remove|update|move|copy|restore)\s+(.+)$`
+)
+
 // DiffResult holds parsed SnapRAID diff summary and file paths for each change type.
 type DiffResult struct {
 	Equal    int `json:"equal"`
@@ -24,17 +29,27 @@ type DiffResult struct {
 	RestoredFiles []string `json:"restored_files,omitempty"`
 }
 
+// HasChanges returns true if any files were added, removed, updated, moved, copied, or restored.
+func (d DiffResult) HasChanges() bool {
+	return d.Added > 0 ||
+		d.Removed > 0 ||
+		d.Updated > 0 ||
+		d.Moved > 0 ||
+		d.Copied > 0 ||
+		d.Restored > 0
+}
+
 // parseDiff parses the stdout lines of `snapraid diff` into a structured DiffResult.
 func parseDiff(lines []string) DiffResult {
 	var res DiffResult
-	summaryRx := regexp.MustCompile(`(?i)^(\d+)\s+(equal|added|removed|updated|moved|copied|restored)$`)
-	changeRx := regexp.MustCompile(`(?i)^(add|remove|update|move|copy|restore)\s+(.+)$`)
+	sumRx := regexp.MustCompile(summaryRx)
+	chaRx := regexp.MustCompile(changeRx)
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 
 		// Summary line
-		if m := summaryRx.FindStringSubmatch(line); m != nil {
+		if m := sumRx.FindStringSubmatch(line); m != nil {
 			n, _ := strconv.Atoi(m[1])
 			switch strings.ToLower(m[2]) {
 			case "equal":
@@ -56,7 +71,7 @@ func parseDiff(lines []string) DiffResult {
 		}
 
 		// Individual file line
-		if m := changeRx.FindStringSubmatch(line); m != nil {
+		if m := chaRx.FindStringSubmatch(line); m != nil {
 			action := strings.ToLower(m[1])
 			path := m[2]
 
@@ -77,9 +92,4 @@ func parseDiff(lines []string) DiffResult {
 		}
 	}
 	return res
-}
-
-// CountChanges returns the total number of changes (excluding equal files).
-func CountChanges(r DiffResult) int {
-	return r.Added + r.Removed + r.Updated + r.Moved + r.Copied + r.Restored
 }

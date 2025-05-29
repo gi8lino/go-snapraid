@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 )
 
-// WriteResultJSON writes the RunResult to a timestamped JSON file in the given directory.
-func WriteResultJSON(dir string, result RunResult) error {
+// WriteJSON writes the RunResult to a timestamped JSON file in the given directory.
+func (r RunResult) WriteJSON(dir string) error {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("failed to create output dir: %w", err)
 	}
 
-	filename := result.Timestamp + ".json"
+	filename := r.Timestamp + ".json"
 	path := filepath.Join(dir, filename)
 
 	file, err := os.Create(path)
@@ -24,7 +24,7 @@ func WriteResultJSON(dir string, result RunResult) error {
 
 	enc := json.NewEncoder(file)
 	enc.SetIndent("", "  ")
-	if err := enc.Encode(result); err != nil {
+	if err := enc.Encode(r); err != nil {
 		return fmt.Errorf("failed to encode result JSON: %w", err)
 	}
 

@@ -22,10 +22,21 @@ func New(configFile, snapraidBin string, options ...Option) *Runner {
 		ConfigFile:  configFile,
 		SnapraidBin: snapraidBin,
 		Timestamp:   time.Now().UTC(),
-		Steps:       Steps{},
-		Thresholds:  Thresholds{},
-		ScrubPlan:   22,
-		ScrubOlder:  12,
+		Steps: Steps{
+			Touch: false,
+			Scrub: false,
+			Smart: false,
+		},
+		Thresholds: Thresholds{
+			Add:     -1, // infinite
+			Remove:  80,
+			Update:  400,
+			Move:    -1, // infinite
+			Copy:    -1, // infinite
+			Restore: -1, // infinite
+		},
+		ScrubPlan:  22,
+		ScrubOlder: 12,
 	}
 	for _, opt := range options {
 		opt(r)
@@ -55,7 +66,7 @@ func (r *Runner) Run() RunResult {
 	}
 
 	result = parseDiff(diffLines)
-	if CountChanges(result) == 0 {
+	if !result.HasChanges() {
 		timings.Total = time.Since(start)
 		return RunResult{
 			Timestamp: r.Timestamp.Format(time.RFC3339),

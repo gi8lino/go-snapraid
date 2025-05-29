@@ -19,3 +19,8 @@ type RunResult struct {
 	Timings   RunTimings `json:"timings"`
 	Error     error      `json:"error,omitempty"`
 }
+
+// HasChanges returns true if any files were added, removed, updated, moved, copied, or restored.
+func (r RunResult) HasChanges() bool {
+	return r.Result.HasChanges()
+}

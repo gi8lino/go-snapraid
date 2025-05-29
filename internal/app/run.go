@@ -15,6 +15,7 @@ import (
 
 // Run is the main entrypoint for the SnapRAID runner application.
 func Run(ctx context.Context, version, commit string, args []string, w io.Writer) error {
+	// Parse CLI flags
 	flags, err := flag.ParseFlags(args, version)
 	if err != nil {
 		var helpErr *flag.HelpRequested
@@ -29,6 +30,7 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 		return fmt.Errorf("invalid CLI flags: %w", err)
 	}
 
+	// Setup logger
 	logger := logging.SetupLogger(flags.LogFormat, w)
 	logger.Info("Starting snapraid runner", "version", version, "commit", commit)
 
@@ -64,14 +66,17 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 				Copy:    cfg.Thresholds.Copy,
 				Restore: cfg.Thresholds.Restore,
 			}),
-		snapraid.WithScrubOptions(cfg.Scrub.Plan, cfg.Scrub.OlderThan),
+		snapraid.WithScrubOptions(
+			cfg.Scrub.Plan,
+			cfg.Scrub.OlderThan,
+		),
 	)
 
 	// Run the SnapRAID pipeline
 	result := runner.Run()
 
 	// Log change summary
-	if snapraid.CountChanges(result.Result) == 0 {
+	if result.HasChanges() {
 		logger.Info("No changes detected")
 	} else {
 		logger.Info("SnapRAID sync completed",
@@ -86,7 +91,7 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 
 	// Persist run result to file
 	if cfg.OutputDir != "" {
-		if err := snapraid.WriteResultJSON(cfg.OutputDir, result); err != nil {
+		if err := result.WriteJSON(cfg.OutputDir); err != nil {
 			logger.Warn("Failed to write result file", "error", err)
 		}
 	}
