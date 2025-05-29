@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
-// SendSlackAttachment posts a summary message with color.
-func SendSlackAttachment(token, channel, message, color string) error {
+// sendSlackAttachment posts a summary message with color.
+func sendSlackAttachment(token, channel, message, color string) error {
+	channel = "#" + strings.TrimPrefix(channel, "#") // make sure it's prefixed with #
 	payload := map[string]any{
 		"channel": channel,
 		"attachments": []map[string]any{

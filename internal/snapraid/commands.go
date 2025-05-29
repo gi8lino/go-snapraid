@@ -6,16 +6,14 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-
-	"github.com/gi8lino/go-snapraid/internal/flag"
+	"strconv"
 )
 
-// runDiff executes 'snapraid diff' and returns its stdout output line by line.
-func runDiff(o flag.Options) ([]string, error) {
+// runDiff executes `snapraid diff` and returns the stdout lines.
+func (r *Runner) runDiff() ([]string, error) {
 	var stdout, stderr bytes.Buffer
 
-	err := runCommand(o, "diff", &stdout, &stderr, true)
-	// exit code 0 = no changes, 2 = changes → both are acceptable
+	err := r.runCommand("diff", nil, &stdout, &stderr, true)
 	if err != nil && !isAcceptableExitCode(err, 0, 2) {
 		return nil, fmt.Errorf("snapraid diff failed: %v\nstderr: %s", err, stderr.String())
 	}
@@ -28,26 +26,64 @@ func runDiff(o flag.Options) ([]string, error) {
 	return lines, nil
 }
 
-// runSync executes 'snapraid sync' and returns any non-zero error.
-func runSync(o flag.Options) error {
+// runSync executes `snapraid sync`.
+func (r *Runner) runSync() error {
 	var stdout, stderr bytes.Buffer
 
-	err := runCommand(o, "sync", &stdout, &stderr, false)
+	err := r.runCommand("sync", nil, &stdout, &stderr, false)
 	if err != nil && !isAcceptableExitCode(err, 0) {
 		return fmt.Errorf("snapraid sync failed: %v\nstderr: %s", err, stderr.String())
 	}
 	return nil
 }
 
-// runCommand executes a SnapRAID command with the given arguments and I/O streams.
-func runCommand(o flag.Options, cmd string, stdout, stderr io.Writer, quiet bool) error {
-	args := []string{"--conf", o.ConfigFile}
-	if quiet {
-		args = append(args, "--quiet")
-	}
-	args = append([]string{cmd}, args...)
+// runTouch executes `snapraid touch`.
+func (r *Runner) runTouch() error {
+	var stdout, stderr bytes.Buffer
 
-	c := exec.Command(o.SnapraidBin, args...)
+	err := r.runCommand("touch", nil, &stdout, &stderr, false)
+	if err != nil && !isAcceptableExitCode(err, 0) {
+		return fmt.Errorf("snapraid touch failed: %v\nstderr: %s", err, stderr.String())
+	}
+	return nil
+}
+
+// runScrub executes `snapraid scrub` with --plan and --older-than.
+func (r *Runner) runScrub() error {
+	var stdout, stderr bytes.Buffer
+
+	args := []string{
+		"-plan", strconv.Itoa(r.ScrubPlan),
+		"-older-than", strconv.Itoa(r.ScrubOlder),
+	}
+
+	err := r.runCommand("scrub", args, &stdout, &stderr, false)
+	if err != nil && !isAcceptableExitCode(err, 0) {
+		return fmt.Errorf("snapraid scrub failed: %v\nstderr: %s", err, stderr.String())
+	}
+	return nil
+}
+
+// runSmart executes `snapraid smart`.
+func (r *Runner) runSmart() error {
+	var stdout, stderr bytes.Buffer
+
+	err := r.runCommand("smart", nil, &stdout, &stderr, false)
+	if err != nil && !isAcceptableExitCode(err, 0) {
+		return fmt.Errorf("snapraid smart failed: %v\nstderr: %s", err, stderr.String())
+	}
+	return nil
+}
+
+// runCommand is the low-level wrapper for invoking snapraid with arguments.
+func (r *Runner) runCommand(cmd string, args []string, stdout, stderr io.Writer, quiet bool) error {
+	baseArgs := []string{"--conf", r.ConfigFile}
+	if quiet {
+		baseArgs = append(baseArgs, "--quiet")
+	}
+	fullArgs := append([]string{cmd}, append(baseArgs, args...)...)
+
+	c := exec.Command(r.SnapraidBin, fullArgs...)
 	c.Stdout = stdout
 	c.Stderr = stderr
 

@@ -6,14 +6,25 @@ import (
 	"strings"
 )
 
-// DiffResult holds parsed diff summary and affected files.
+// DiffResult holds parsed SnapRAID diff summary and file paths for each change type.
 type DiffResult struct {
-	Equal, Added, Removed, Updated, Moved, Copied, Restored int
-	AddedFiles, RemovedFiles, UpdatedFiles                  []string
-	MovedFiles, CopiedFiles, RestoredFiles                  []string
+	Equal    int `json:"equal"`
+	Added    int `json:"added"`
+	Removed  int `json:"removed"`
+	Updated  int `json:"updated"`
+	Moved    int `json:"moved"`
+	Copied   int `json:"copied"`
+	Restored int `json:"restored"`
+
+	AddedFiles    []string `json:"added_files,omitempty"`
+	RemovedFiles  []string `json:"removed_files,omitempty"`
+	UpdatedFiles  []string `json:"updated_files,omitempty"`
+	MovedFiles    []string `json:"moved_files,omitempty"`
+	CopiedFiles   []string `json:"copied_files,omitempty"`
+	RestoredFiles []string `json:"restored_files,omitempty"`
 }
 
-// parseDiff parses snapraid diff output into a structured result.
+// parseDiff parses the stdout lines of `snapraid diff` into a structured DiffResult.
 func parseDiff(lines []string) DiffResult {
 	var res DiffResult
 	summaryRx := regexp.MustCompile(`(?i)^(\d+)\s+(equal|added|removed|updated|moved|copied|restored)$`)
@@ -21,6 +32,8 @@ func parseDiff(lines []string) DiffResult {
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
+
+		// Summary line
 		if m := summaryRx.FindStringSubmatch(line); m != nil {
 			n, _ := strconv.Atoi(m[1])
 			switch strings.ToLower(m[2]) {
@@ -39,8 +52,14 @@ func parseDiff(lines []string) DiffResult {
 			case "restored":
 				res.Restored += n
 			}
-		} else if m := changeRx.FindStringSubmatch(line); m != nil {
-			action, path := strings.ToLower(m[1]), m[2]
+			continue
+		}
+
+		// Individual file line
+		if m := changeRx.FindStringSubmatch(line); m != nil {
+			action := strings.ToLower(m[1])
+			path := m[2]
+
 			switch action {
 			case "add":
 				res.AddedFiles = append(res.AddedFiles, path)
@@ -60,7 +79,7 @@ func parseDiff(lines []string) DiffResult {
 	return res
 }
 
-// CountChanges returns the number of files changed.
+// CountChanges returns the total number of changes (excluding equal files).
 func CountChanges(r DiffResult) int {
 	return r.Added + r.Removed + r.Updated + r.Moved + r.Copied + r.Restored
 }
