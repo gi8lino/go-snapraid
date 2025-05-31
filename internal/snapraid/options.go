@@ -1,7 +1,5 @@
 package snapraid
 
-import "io"
-
 // Steps defines which SnapRAID steps to run.
 type Steps struct {
 	Touch bool
@@ -21,13 +19,6 @@ type Thresholds struct {
 
 // Option configures a Runner instance.
 type Option func(*Runner)
-
-// WithWriter sets the output writer for the SnapRAID runner.
-func WithWriter(w io.Writer) Option {
-	return func(r *Runner) {
-		r.Output = w
-	}
-}
 
 // WithDryRun enables dry-run mode.
 func WithDryRun() Option {

@@ -1,8 +1,7 @@
 package snapraid
 
 import (
-	"io"
-	"os"
+	"log/slog"
 	"time"
 )
 
@@ -16,18 +15,18 @@ type Runner struct {
 	ScrubPlan   int
 	ScrubOlder  int
 	DryRun      bool
-	Output      io.Writer
+	Logger      *slog.Logger
 
 	Timestamp time.Time
 }
 
 // New creates a new SnapRAID Runner with required values.
-func New(configFile, snapraidBin string, options ...Option) *Runner {
+func New(configFile, snapraidBin string, logger *slog.Logger, options ...Option) *Runner {
 	r := &Runner{
 		ConfigFile:  configFile,
 		SnapraidBin: snapraidBin,
+		Logger:      logger,
 		Timestamp:   time.Now().UTC(),
-		Output:      os.Stdout,
 		Steps: Steps{
 			Touch: false,
 			Scrub: false,
