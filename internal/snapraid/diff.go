@@ -8,7 +8,7 @@ import (
 
 const (
 	summaryRx string = `(?i)^(\d+)\s+(equal|added|removed|updated|moved|copied|restored)$`
-	changeRx  string = `(?i)^(add|remove|update|move|copy|restore)\s+(.+)$`
+	changesRx string = `(?i)^(add|remove|update|move|copy|restore)\s+(.+)$`
 )
 
 // DiffResult holds parsed SnapRAID diff summary and file paths for each change type.
@@ -43,7 +43,7 @@ func (d DiffResult) HasChanges() bool {
 func parseDiff(lines []string) DiffResult {
 	var res DiffResult
 	sumRx := regexp.MustCompile(summaryRx)
-	chaRx := regexp.MustCompile(changeRx)
+	chaRx := regexp.MustCompile(changesRx)
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
