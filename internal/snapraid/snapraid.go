@@ -1,6 +1,10 @@
 package snapraid
 
-import "time"
+import (
+	"io"
+	"os"
+	"time"
+)
 
 // Runner coordinates the full SnapRAID workflow including steps and thresholds.
 type Runner struct {
@@ -12,6 +16,7 @@ type Runner struct {
 	ScrubPlan   int
 	ScrubOlder  int
 	DryRun      bool
+	Output      io.Writer
 
 	Timestamp time.Time
 }
@@ -22,6 +27,7 @@ func New(configFile, snapraidBin string, options ...Option) *Runner {
 		ConfigFile:  configFile,
 		SnapraidBin: snapraidBin,
 		Timestamp:   time.Now().UTC(),
+		Output:      os.Stdout,
 		Steps: Steps{
 			Touch: false,
 			Scrub: false,

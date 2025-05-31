@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/gi8lino/go-snapraid/internal/config"
 	"github.com/gi8lino/go-snapraid/internal/flag"
@@ -50,6 +51,7 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 	runner := snapraid.New(
 		cfg.ConfigFile,
 		cfg.SnapraidBin,
+		snapraid.WithWriter(os.Stdout),
 		snapraid.WithOutputDir(cfg.OutputDir),
 		snapraid.WithSteps(
 			snapraid.Steps{
