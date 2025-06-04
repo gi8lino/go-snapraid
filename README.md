@@ -55,7 +55,7 @@ notifications:
 ```
 
 - **`snapraid_bin`**: Full path to the `snapraid` executable.
-- **`config_file`**: Path to the SnapRAID config file used by the `snapraid` command.
+- **`snapraid_config`**: Path to the SnapRAID config file used by the `snapraid` command.
 - **`output_dir`**: Directory for writing JSON result files. If unset, JSON output is not written.
 - **`thresholds`**: Numeric limits for each file-change category. If any threshold is exceeded, SnapRAID sync is aborted.
 - **`steps.touch`**, **`steps.scrub`**, **`steps.smart`**: Boolean flags determining which SnapRAID subcommands run.
