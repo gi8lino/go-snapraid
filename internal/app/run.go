@@ -10,7 +10,7 @@ import (
 	"github.com/gi8lino/go-snapraid/internal/flag"
 	"github.com/gi8lino/go-snapraid/internal/logging"
 	"github.com/gi8lino/go-snapraid/internal/notify"
-	"github.com/gi8lino/go-snapraid/internal/snapraid"
+	"github.com/gi8lino/go-snapraid/pkg/snapraid"
 )
 
 // Run is the main entrypoint for the SnapRAID runner application.

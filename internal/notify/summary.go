@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gi8lino/go-snapraid/internal/snapraid"
+	"github.com/gi8lino/go-snapraid/pkg/snapraid"
 )
 
 // SendSummaryNotification sends a formatted Slack message with status + timing info.
