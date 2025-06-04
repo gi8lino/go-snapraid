@@ -1,0 +1,24 @@
+snapraid_bin: /usr/bin/snapraid
+snapraid_config: /etc/snapraid.conf
+output_dir: /var/log/go-snapraid/
+
+thresholds:
+  add: 100
+  remove: 50
+  update: 50
+  copy: 50
+  move: 50
+  restore: 50
+
+steps:
+  touch: true
+  scrub: true
+  smart: false
+
+scrub:
+  plan: 22
+  older_than: 12
+
+notifications:
+  slack_token: xoxb-123...
+  slack_channel: C01ABCDEF
