@@ -64,24 +64,26 @@ func (d *DefaultExecutor) Smart() error {
 
 // runCommand runs `snapraid <cmd> [--plan X] [--older-than Y]`, logging under the given tag.
 func (d *DefaultExecutor) runCommand(cmd string, args []string, tag string) error {
-	var buf bytes.Buffer
-	lw := newLoggerWriter(d.logger, tag)
-	combined := io.MultiWriter(&buf, lw)
+ var outBuf, errBuf bytes.Buffer
+ stdoutLog := newLoggerWriter(d.logger, tag) // could add ".stdout" tag
+ stderrLog := newLoggerWriter(d.logger, tag) // or different severity
 
-	if err := d.runCommandToWriter(cmd, args, combined); err != nil {
-		return fmt.Errorf("snapraid %s failed: %v: %s", cmd, err, buf.String())
-	}
-	return nil
+ stdoutCombined := io.MultiWriter(&outBuf, stdoutLog)
+ stderrCombined := io.MultiWriter(&errBuf, stderrLog)
+
+ if err := d.runCommandToWriter(cmd, args, stdoutCombined, stderrCombined); err != nil {
+	 return fmt.Errorf("snapraid %s failed: %w\nstderr:\n%s", cmd, err, errBuf.String())
+ }
 }
 
 // runCommandToWriter builds and invokes the actual `snapraid <cmd> …`, writing stdout+stderr to w.
-func (d *DefaultExecutor) runCommandToWriter(cmd string, args []string, w io.Writer) error {
+func (d *DefaultExecutor) runCommandToWriter(cmd string, args []string, stdout, stderr io.Writer) error {
 	baseArgs := []string{"--conf", d.configPath, "--quiet"}
 	fullArgs := append([]string{cmd}, append(baseArgs, args...)...)
 
-	fmt.Fprintf(w, "Running %s\n", cmd) // nolint:errcheck
+	fmt.Fprintf(stdout, "Running %s\n", cmd)
 	c := exec.Command(d.binaryPath, fullArgs...)
-	c.Stdout = w
-	c.Stderr = w
+	c.Stdout = stdout
+	c.Stderr = stderr
 	return c.Run()
 }
