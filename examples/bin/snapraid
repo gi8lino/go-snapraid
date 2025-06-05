@@ -1,0 +1,26 @@
+#!/bin/sh
+
+echo """Comparing...
+add movies/Gladiator\ \(2000\)/Gladiator.2000.German.AC3.DL.1080p.BluRay.x264.FuN.mk
+add movies/Interstellar\ \(2014\)/Interstellar.2014.German.AC3.DL.1080p.BluRay.x264.FuN.mkv
+add movies/Judge\ Dredd\ \(1995\)/Judge.Dredd.1995.German.AC3.DL.1080p.BluRay.x264.FuN.mkv
+add movies/Predator\ \(1987\)/Predator.1987.German.AC3.DL.1080p.BluRay.x264.FuN.mkv
+add movies/Zoolander\ \(2001\)/Zoolander.2001.German.AC3.DL.1080p.BluRay.x265-FuN.mkv
+copy movies/Mile\ 22\ \(2002\)/Mile.22.2002.German.AC3.DL.1080p.BluRay.x264.FuN.mkv
+move movies/The\ Shawshank\ Redemption\ \(1994\)/The.Shawshank.Redemption.1994.German.AC3.DL.1080p.BluRay.x264.FuN.mkv
+remove movies/XOXO\ \(2016\)/XOXO.2016.German.DL.1080p.WEB.x264.iNTERNAL-BiGiNT.mkv
+remove movies/Zoolander\ 2\ \(2016\)/Zoolander.2.2016.German.AC3.DL.1080p.BluRay.x265-FuN.mkv
+restore movies/Crazy, Stupid, Love\. A\. Piano\. \(2009\)/Crazy.Stupid.Love.A.Piano.2009.German.AC3.DL.1080p.BluRay.x264.FuN.mkv
+update movies/The\ Matrix\ \(1999\)/The.Matrix.1999.German.AC3.DL.1080p.BluRay.x264.FuN.mkv
+
+   21156 equal
+       5 added
+       2 removed
+       1 updated
+       1 moved
+       1 copied
+       1 restored
+There are differences!
+"""
+
+exit 0

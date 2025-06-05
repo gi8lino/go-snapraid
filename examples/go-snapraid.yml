@@ -1,6 +1,6 @@
-snapraid_bin: /usr/bin/snapraid
-snapraid_config: /etc/snapraid.conf
-output_dir: /var/log/go-snapraid/
+snapraid_bin: ./examples/bin/snapraid
+snapraid_config: ./examples/snapraid.conf
+output_dir: /tmp/go-snapraid/
 
 thresholds:
   add: 100
