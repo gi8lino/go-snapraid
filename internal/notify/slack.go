@@ -19,6 +19,7 @@ func sendSlackAttachment(token, channel, message, color string) error {
 			{
 				"color": color,
 				"text":  message,
+				"type":  "mrkdwn",
 			},
 		},
 	}

@@ -29,9 +29,8 @@ func SendSummaryNotification(
 	msg := formatSlackSummary(result, ts, timings, statusLabel)
 
 	if webURL != "" {
-		msg += "\n\n[View Results](" + webURL + ")"
+		msg += "\n\n<" + webURL + "|View Results>"
 	}
-	fmt.Println("msg", msg)
 
 	return sendSlackAttachment(token, channel, msg, color)
 }

@@ -1,7 +1,6 @@
 package snapraid
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 )
@@ -65,7 +64,6 @@ func (r *Runner) Run() RunResult {
 	diffLines, err := r.exec.Diff()
 	timings.Diff = time.Since(t1)
 	if err != nil {
-		fmt.Println(err.Error())
 		return RunResult{Error: err, Timings: timings}
 	}
 
