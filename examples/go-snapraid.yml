@@ -22,3 +22,4 @@ scrub:
 notifications:
   slack_token: xoxb-123...
   slack_channel: C01ABCDEF
+  web: https://go-snapraid-web.example.com

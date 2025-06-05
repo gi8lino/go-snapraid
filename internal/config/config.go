@@ -46,4 +46,5 @@ type ScrubOptions struct {
 type Notify struct {
 	SlackToken   string `yaml:"slack_token"`   // SlackToken is the Bot User OAuth token used to post messages.
 	SlackChannel string `yaml:"slack_channel"` // SlackChannel is the channel name or ID where messages will be sent.
+	Web          string `yaml:"web"`           // Web is the URL to the web UI.
 }

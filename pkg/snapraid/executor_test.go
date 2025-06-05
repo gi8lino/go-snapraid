@@ -171,7 +171,7 @@ func TestDefaultExecutor_Diff(t *testing.T) {
 
 		ex := &DefaultExecutor{
 			configPath: "dummy.conf",
-			binaryPath: testutils.WriteScriptFile(t, "ignored", 2),
+			binaryPath: testutils.WriteScriptFile(t, "echo ignored", 2),
 			scrubPlan:  0,
 			scrubOlder: 0,
 			logger:     logger,
@@ -189,7 +189,7 @@ func TestDefaultExecutor_Diff(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(&strings.Builder{}, nil))
 		ex := &DefaultExecutor{
 			configPath: "dummy.conf",
-			binaryPath: testutils.WriteScriptFile(t, "fail", 3),
+			binaryPath: testutils.WriteScriptFile(t, "echo fail", 3),
 			scrubPlan:  0,
 			scrubOlder: 0,
 			logger:     logger,

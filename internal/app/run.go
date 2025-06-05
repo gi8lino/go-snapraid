@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
+	"strings"
 
 	"github.com/gi8lino/go-snapraid/internal/config"
 	"github.com/gi8lino/go-snapraid/internal/flag"
@@ -106,13 +108,17 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 	}
 
 	// Send Slack notification
-	// In your caller:
 	if cfg.WantsSlackNotification(flags.NoNotify) {
+		var web string
+		if cfg.Notify.Web != "" {
+			web = fmt.Sprintf("%s/run/%s", strings.TrimRight(cfg.Notify.Web, "/"), url.PathEscape(runner.Timestamp.String()))
+		}
 		err := notify.SendSummaryNotification(
 			flags.DryRun,
 			(result.Error != nil),
 			cfg.Notify.SlackToken,
 			cfg.Notify.SlackChannel,
+			web,
 			result,
 			runner.Timestamp,
 			result.Timings,

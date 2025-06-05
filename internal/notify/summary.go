@@ -8,16 +8,14 @@ import (
 	"github.com/gi8lino/go-snapraid/pkg/snapraid"
 )
 
-// SendSummaryNotification sends a formatted Slack message with status + timing info.
+// SendSummaryNotification sends a formatted Slack message summarizing the SnapRAID run result.
 func SendSummaryNotification(
-	dryRun bool,
-	hadError bool,
-	token, channel string,
+	dryRun, hadError bool,
+	token, channel, webURL string,
 	result snapraid.RunResult,
 	ts time.Time,
 	timings snapraid.RunTimings,
 ) error {
-	// Build the “⦿ SUCCESS” or “⦿ ERROR” label
 	statusLabel := "⦿ SUCCESS"
 	color := "#2ECC71"
 	if hadError {
@@ -28,9 +26,19 @@ func SendSummaryNotification(
 		statusLabel = "[DRY RUN] " + statusLabel
 	}
 
-	// Build the core summary block
+	msg := formatSlackSummary(result, ts, timings, statusLabel)
+
+	if webURL != "" {
+		msg += "\n\n[View Results](" + webURL + ")"
+	}
+
+	return sendSlackAttachment(token, channel, msg, color)
+}
+
+// formatSlackSummary builds the message text for a Slack notification.
+func formatSlackSummary(result snapraid.RunResult, ts time.Time, timings snapraid.RunTimings, statusLabel string) string {
 	res := result.Result
-	summaryLines := []string{
+	lines := []string{
 		fmt.Sprintf("%s SnapRAID run (%s UTC):", statusLabel, ts.Format("2006-01-02 15:04")),
 		fmt.Sprintf(" • Equal:    %d", res.Equal),
 		fmt.Sprintf(" • Added:    %d", len(res.Added)),
@@ -41,7 +49,7 @@ func SendSummaryNotification(
 		fmt.Sprintf(" • Restored: %d", len(res.Restored)),
 	}
 
-	// Only include a Timings block if at least one duration is non‐zero
+	// Append timings
 	var timingLines []string
 	if timings.Touch > 0 {
 		timingLines = append(timingLines, fmt.Sprintf(" • Touch:  %s", timings.Touch.Truncate(time.Second)))
@@ -62,10 +70,10 @@ func SendSummaryNotification(
 		timingLines = append(timingLines, fmt.Sprintf(" • Total:  %s", timings.Total.Truncate(time.Second)))
 	}
 
-	fullMsg := strings.Join(summaryLines, "\n")
 	if len(timingLines) > 0 {
-		fullMsg += "\n\nTimings:\n" + strings.Join(timingLines, "\n")
+		lines = append(lines, "", "Timings:")
+		lines = append(lines, timingLines...)
 	}
 
-	return sendSlackAttachment(token, channel, fullMsg, color)
+	return strings.Join(lines, "\n")
 }

@@ -52,6 +52,7 @@ scrub:
 notifications:
   slack_token: xoxb-1234567890-abcdefg # Slack Bot User OAuth Token
   slack_channel: "#snapraid" # Channel name or ID
+  web: https://go-snapraid-web.example.com # URL to the go-snapraid-web
 ```
 
 - **`snapraid_bin`**: Full path to the `snapraid` executable.
@@ -188,6 +189,10 @@ If Slack notifications are configured in the YAML file (non-empty `slack_token` 
 - Any errors encountered
 
 To temporarily disable Slack notifications, pass `--no-notify` on the command line.
+
+## Web UI
+
+You can deploy a [Web UI](https://github.com/gi8lino/go-snapraid-web) to view go-snapraid results.
 
 ## License
 
