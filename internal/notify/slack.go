@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const slackPostMessageAPI string = "https://slack.com/api/chat.postMessage"
+
 // sendSlackAttachment posts a summary message with color.
 func sendSlackAttachment(token, channel, message, color string) error {
 	channel = "#" + strings.TrimPrefix(channel, "#") // make sure it's prefixed with #
@@ -21,7 +23,7 @@ func sendSlackAttachment(token, channel, message, color string) error {
 		},
 	}
 	body, _ := json.Marshal(payload)
-	req, _ := http.NewRequest("POST", "https://slack.com/api/chat.postMessage", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", slackPostMessageAPI, bytes.NewBuffer(body))
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 

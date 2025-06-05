@@ -16,14 +16,14 @@ func SendSummaryNotification(
 	ts time.Time,
 	timings snapraid.RunTimings,
 ) error {
-	statusLabel := "⦿ SUCCESS"
+	statusLabel := "[SUCCESS]"
 	color := "#2ECC71"
 	if hadError {
-		statusLabel = "⦿ ERROR"
+		statusLabel = "[ERROR]"
 		color = "#E74C3C"
 	}
 	if dryRun {
-		statusLabel = "[DRY RUN] " + statusLabel
+		statusLabel = "[DRY RUN]-" + statusLabel
 	}
 
 	msg := formatSlackSummary(result, ts, timings, statusLabel)
@@ -31,6 +31,7 @@ func SendSummaryNotification(
 	if webURL != "" {
 		msg += "\n\n[View Results](" + webURL + ")"
 	}
+	fmt.Println("msg", msg)
 
 	return sendSlackAttachment(token, channel, msg, color)
 }
@@ -39,7 +40,7 @@ func SendSummaryNotification(
 func formatSlackSummary(result snapraid.RunResult, ts time.Time, timings snapraid.RunTimings, statusLabel string) string {
 	res := result.Result
 	lines := []string{
-		fmt.Sprintf("%s SnapRAID run (%s UTC):", statusLabel, ts.Format("2006-01-02 15:04")),
+		fmt.Sprintf("%s go-snapraid run (%s):", statusLabel, ts.Format("2006-01-02 15:04")),
 		fmt.Sprintf(" • Equal:    %d", res.Equal),
 		fmt.Sprintf(" • Added:    %d", len(res.Added)),
 		fmt.Sprintf(" • Removed:  %d", len(res.Removed)),
