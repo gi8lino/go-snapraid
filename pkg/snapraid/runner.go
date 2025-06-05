@@ -31,7 +31,6 @@ func NewRunner(
 		Thresholds: thresholds,
 		DryRun:     dryRun,
 		Logger:     logger,
-		Timestamp:  time.Now().UTC(),
 	}
 	r.exec = &DefaultExecutor{
 		configPath: configPath,
@@ -46,9 +45,13 @@ func NewRunner(
 // Run executes the SnapRAID workflow in this order: Touch → Diff → (Sync → Scrub → Smart).
 // It returns a RunResult containing timestamps, parsed diff, per‐step durations, and any error.
 func (r *Runner) Run() RunResult {
+	now := time.Now()
+
 	var result DiffResult
 	var timings RunTimings
-	start := time.Now()
+
+	r.Timestamp = now // set the timestamp before we start
+	start := now      // and use it in the timings
 
 	// TOUCH - makes only sense if we're not doing a dry run
 	if r.Steps.Touch && !r.DryRun {

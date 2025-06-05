@@ -86,7 +86,6 @@ func TestNewRunner(t *testing.T) {
 	assert.Equal(t, thresholds, r.Thresholds, "Thresholds should match")
 	assert.Equal(t, dryRun, r.DryRun, "DryRun should match")
 	assert.Equal(t, logger, r.Logger, "Logger should match")
-	assert.False(t, r.Timestamp.IsZero(), "Timestamp should be set to a non-zero value")
 
 	// exec should be a *DefaultExecutor with matching fields
 	de, ok := r.exec.(*DefaultExecutor)
@@ -97,14 +96,6 @@ func TestNewRunner(t *testing.T) {
 	assert.Equal(t, scrubPlanVal, de.scrubPlan, "DefaultExecutor.scrubPlan should match")
 	assert.Equal(t, scrubOlderVal, de.scrubOlder, "DefaultExecutor.scrubOlder should match")
 	assert.Equal(t, logger, de.logger, "DefaultExecutor.logger should match")
-
-	// Timestamp sanity check: within a couple seconds of now
-	now := time.Now().UTC()
-	diff := now.Sub(r.Timestamp)
-	if diff < 0 {
-		diff = -diff
-	}
-	assert.Less(t, diff, 2*time.Second, "Timestamp should be very recent")
 }
 
 func TestRunner(t *testing.T) {
