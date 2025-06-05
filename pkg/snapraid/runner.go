@@ -54,7 +54,10 @@ func (r *Runner) Run() RunResult {
 	if r.Steps.Touch && !r.DryRun {
 		t0 := time.Now()
 		if err := r.exec.Touch(); err != nil {
-			return RunResult{Error: err}
+			return RunResult{
+				Timestamp: r.Timestamp.Format(time.RFC3339),
+				Error:     err,
+			}
 		}
 		timings.Touch = time.Since(t0)
 	}
@@ -64,7 +67,11 @@ func (r *Runner) Run() RunResult {
 	diffLines, err := r.exec.Diff()
 	timings.Diff = time.Since(t1)
 	if err != nil {
-		return RunResult{Error: err, Timings: timings}
+		return RunResult{
+			Timestamp: r.Timestamp.Format(time.RFC3339),
+			Error:     err,
+			Timings:   timings,
+		}
 	}
 
 	result = parseDiff(diffLines)
@@ -103,7 +110,12 @@ func (r *Runner) Run() RunResult {
 	if err := r.exec.Sync(); err != nil {
 		timings.Sync = time.Since(t2)
 		timings.Total = time.Since(start)
-		return RunResult{Result: result, Timings: timings, Error: err}
+		return RunResult{
+			Timestamp: r.Timestamp.Format(time.RFC3339),
+			Result:    result,
+			Timings:   timings,
+			Error:     err,
+		}
 	}
 	timings.Sync = time.Since(t2)
 
@@ -113,7 +125,12 @@ func (r *Runner) Run() RunResult {
 		if err := r.exec.Scrub(); err != nil {
 			timings.Scrub = time.Since(t3)
 			timings.Total = time.Since(start)
-			return RunResult{Result: result, Timings: timings, Error: err}
+			return RunResult{
+				Timestamp: r.Timestamp.Format(time.RFC3339),
+				Result:    result,
+				Timings:   timings,
+				Error:     err,
+			}
 		}
 		timings.Scrub = time.Since(t3)
 	}
@@ -124,7 +141,12 @@ func (r *Runner) Run() RunResult {
 		if err := r.exec.Smart(); err != nil {
 			timings.Smart = time.Since(t4)
 			timings.Total = time.Since(start)
-			return RunResult{Result: result, Timings: timings, Error: err}
+			return RunResult{
+				Timestamp: r.Timestamp.Format(time.RFC3339),
+				Result:    result,
+				Timings:   timings,
+				Error:     err,
+			}
 		}
 		timings.Smart = time.Since(t4)
 	}
