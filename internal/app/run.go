@@ -54,7 +54,7 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 
 	// Initialize SnapRAID runner
 	runner := snapraid.NewRunner(
-		cfg.ConfigFile,
+		cfg.SnapraidConfig,
 		cfg.SnapraidBin,
 		cfg.OutputDir,
 		snapraid.Steps{

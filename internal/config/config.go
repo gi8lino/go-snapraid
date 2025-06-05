@@ -2,13 +2,13 @@ package config
 
 // Config is the root structure for the YAML config file.
 type Config struct {
-	SnapraidBin string       `yaml:"snapraid_bin"`  // SnapraidBin is the path to the snapraid executable (e.g., /usr/bin/snapraid).
-	ConfigFile  string       `yaml:"config_file"`   // ConfigFile is the path to the snapraid configuration file used by the snapraid command.
-	OutputDir   string       `yaml:"output_dir"`    // OutputDir is the directory where JSON result files will be written. Leave empty to disable.
-	Thresholds  Thresholds   `yaml:"thresholds"`    // Thresholds defines numeric limits for file-change categories before blocking sync.
-	Steps       Steps        `yaml:"steps"`         // Steps toggles which SnapRAID subcommands to run (touch, scrub, smart).
-	Scrub       ScrubOptions `yaml:"scrub"`         // Scrub holds options for the "scrub" command (plan percentage and file age threshold).
-	Notify      Notify       `yaml:"notifications"` // Notify contains Slack notification settings (token and channel).
+	SnapraidBin    string       `yaml:"snapraid_bin"`    // SnapraidBin is the path to the snapraid executable (e.g., /usr/bin/snapraid).
+	SnapraidConfig string       `yaml:"snapraid_config"` // SnapraidConfig is the path to the snapraid configuration file used by the snapraid command.
+	OutputDir      string       `yaml:"output_dir"`      // OutputDir is the directory where JSON result files will be written. Leave empty to disable.
+	Thresholds     Thresholds   `yaml:"thresholds"`      // Thresholds defines numeric limits for file-change categories before blocking sync.
+	Steps          Steps        `yaml:"steps"`           // Steps toggles which SnapRAID subcommands to run (touch, scrub, smart).
+	Scrub          ScrubOptions `yaml:"scrub"`           // Scrub holds options for the "scrub" command (plan percentage and file age threshold).
+	Notify         Notify       `yaml:"notifications"`   // Notify contains Slack notification settings (token and channel).
 }
 
 // WantsSlackNotification returns true if Slack notifications
