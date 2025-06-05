@@ -15,11 +15,11 @@ func (c Config) Validate() error {
 		return fmt.Errorf("snapraid_bin not found: %s", c.SnapraidBin)
 	}
 
-	if c.ConfigFile == "" {
-		return fmt.Errorf("config_file must be set")
+	if c.SnapraidConfig == "" {
+		return fmt.Errorf("snapraid_config must be set")
 	}
-	if _, err := os.Stat(c.ConfigFile); err != nil {
-		return fmt.Errorf("config_file not found: %s", c.ConfigFile)
+	if _, err := os.Stat(c.SnapraidConfig); err != nil {
+		return fmt.Errorf("snapraid_config not found: %s", c.SnapraidConfig)
 	}
 
 	// After ApplyDefaults, c.Scrub.Plan is guaranteed non‐nil.

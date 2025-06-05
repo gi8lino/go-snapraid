@@ -4,28 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"testing"
 
+	"github.com/gi8lino/go-snapraid/internal/testutils"
 	"github.com/stretchr/testify/assert"
 )
-
-// createScript writes a shell script at `path` with the given content and makes it executable.
-func createScript(t *testing.T, path string, content string) {
-	t.Helper()
-	if err := os.WriteFile(path, []byte(content), 0o700); err != nil {
-		t.Fatalf("failed to write script %s: %v", path, err)
-	}
-}
-
-// writeFile creates a file at `path` with `content`.
-func writeFile(t *testing.T, path, content string) {
-	t.Helper()
-	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
-		t.Fatalf("failed to write file %s: %v", path, err)
-	}
-}
 
 func TestRun(t *testing.T) {
 	t.Parallel()
@@ -43,14 +26,7 @@ func TestRun(t *testing.T) {
 	t.Run("Invalid config", func(t *testing.T) {
 		t.Parallel()
 
-		tmpDir := t.TempDir()
-		invalidbin := "invalid"
-
-		cfgPath := filepath.Join(tmpDir, "config.yml")
-		cfgYAML := fmt.Sprintf(`
-snapraid_bin: "%s"
-`, invalidbin)
-		writeFile(t, cfgPath, cfgYAML)
+		cfgPath := testutils.WriteFile(t, "snapraid_bin: invalid")
 
 		var stdout bytes.Buffer
 		err := Run(context.Background(), "vTEST", "commit123", []string{"--config", cfgPath}, &stdout)
@@ -61,34 +37,28 @@ snapraid_bin: "%s"
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 
-		tmpDir := t.TempDir()
-		dummyConf := filepath.Join(tmpDir, "snapraid.conf")
-		writeFile(t, dummyConf, "# dummy snapraid config")
-		binPath := filepath.Join(tmpDir, "fake-snapraid.sh")
-		createScript(t, binPath, `#!/bin/sh
-printf """
+		dummyConf := testutils.WriteFile(t, "# dummy snapraid config")
+
+		content := `printf """
 Comparing...
 add movies/Zoolander\ \(2001\)/Zoolander.2001.German.AC3.DL.1080p.BluRay.x265-FuN.mkv
 remove movies/Zoolander\ 2\ \(2016\)/Zoolander.2.2016.German.AC3.DL.1080p.BluRay.x265-FuN.mkv
 remove movies/XOXO\ \(2016\)/XOXO.2016.German.DL.1080p.WEB.x264.iNTERNAL-BiGiNT.mkv
 
-   21156 equal
-       1 added
-       2 removed
-       0 updated
-       0 moved
-       0 copied
-       0 restored
+21156 equal
+1 added
+2 removed
+0 updated
+0 moved
+0 copied
+0 restored
 There are differences!
-"""
-exit 0
-`)
-		cfgPath := filepath.Join(tmpDir, "config.yml")
-		cfgYAML := fmt.Sprintf(`
+"""`
+		binPath := testutils.WriteScriptFile(t, content, 0)
+		cfgPath := testutils.WriteFile(t, fmt.Sprintf(`
 snapraid_bin: "%s"
-config_file: "%s"
-`, binPath, dummyConf)
-		writeFile(t, cfgPath, cfgYAML)
+snapraid_config: "%s"
+`, binPath, dummyConf))
 
 		var stdout bytes.Buffer
 		err := Run(context.Background(), "vTEST", "commit123", []string{"--config", cfgPath}, &stdout)
@@ -100,29 +70,18 @@ config_file: "%s"
 	t.Run("Diff failure", func(t *testing.T) {
 		t.Parallel()
 
-		tmpDir := t.TempDir()
+		dummyConf := testutils.WriteFile(t, "# dummy snapraid config")
+		binPath := testutils.WriteScriptFile(t, "echo error", 1)
 
-		dummyConf := filepath.Join(tmpDir, "snapraid.conf")
-		writeFile(t, dummyConf, "# dummy snapraid config")
+		cfgYAML := fmt.Sprintf("snapraid_bin: %q\nsnapraid_config: %q", binPath, dummyConf)
 
-		binPath := filepath.Join(tmpDir, "fake-snapraid-fail.sh")
-		createScript(t, binPath, `#!/bin/sh
-exit 1
-`)
-
-		cfgPath := filepath.Join(tmpDir, "config.yml")
-		cfgYAML := fmt.Sprintf(`
-snapraid_bin: "%s"
-config_file: "%s"
-`, binPath, dummyConf)
-
-		writeFile(t, cfgPath, cfgYAML)
+		cfgPath := testutils.WriteFile(t, cfgYAML)
 
 		var stdout bytes.Buffer
 		err := Run(context.Background(), "vTEST", "commitXYZ", []string{"--config", cfgPath}, &stdout)
 
 		assert.Error(t, err, "Run should return an error when diff fails")
-		assert.EqualError(t, err, "snapraid diff failed: exit status 1: Running diff\n")
+		assert.EqualError(t, err, "snapraid diff failed: exit status 1\nstderr:\n")
 	})
 
 	t.Run("Disabled notification", func(t *testing.T) {
@@ -130,27 +89,20 @@ config_file: "%s"
 
 		tmpDir := t.TempDir()
 
-		dummyConf := filepath.Join(tmpDir, "snapraid.conf")
-		writeFile(t, dummyConf, "# dummy config")
-
-		binPath := filepath.Join(tmpDir, "fake-snapraid.sh")
-		createScript(t, binPath, `#!/bin/sh
-printf "0 equal\n"
-exit 0
-`)
+		dummyConf := testutils.WriteFile(t, "# dummy snapraid config")
+		binPath := testutils.WriteScriptFile(t, "printf \"0 equal\n\"", 0)
 
 		// YAML config: include Slack token/channel, but we will pass --no-notify
-		cfgPath := filepath.Join(tmpDir, "config.yml")
 		cfgYAML := fmt.Sprintf(`
 snapraid_bin: "%s"
-config_file: "%s"
+snapraid_config: "%s"
 output_dir: "%s"
 
 notifications:
   slack_token: "INVALID-TOKEN"
   slack_channel: "#channel"
 `, binPath, dummyConf, tmpDir+"/outno")
-		writeFile(t, cfgPath, cfgYAML)
+		cfgPath := testutils.WriteFile(t, cfgYAML)
 
 		var stdout bytes.Buffer
 		err := Run(context.Background(), "vTEST", "commitNO", []string{"--config", cfgPath, "--no-notify"}, &stdout)
@@ -173,9 +125,9 @@ notifications:
 		t.Parallel()
 
 		var stdout bytes.Buffer
-		tmpDir := t.TempDir()
-		cfgPath := filepath.Join(tmpDir, "bad.yml")
-		writeFile(t, cfgPath, ": not valid YAML")
+		cfgYAML := ": not valid YAML"
+		cfgPath := testutils.WriteFile(t, cfgYAML)
+
 		err := Run(context.Background(), "vTEST", "commitErr2", []string{"--config", cfgPath}, &stdout)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "load config: invalid YAML: yaml: did not find expected key")

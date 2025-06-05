@@ -25,18 +25,21 @@ func (d *DefaultExecutor) Touch() error {
 }
 
 // Diff shells out to `snapraid diff`, logs under "diff", and returns all stdout lines.
+// Diff shells out to `snapraid diff`, logs under "diff", and returns all stdout lines.
 func (d *DefaultExecutor) Diff() ([]string, error) {
-	var buf bytes.Buffer
-	lw := newLoggerWriter(d.logger, "diff")
-	combined := io.MultiWriter(&buf, lw)
+	var stdout, stderr bytes.Buffer
+	logWriter := newLoggerWriter(d.logger, "diff")
 
-	err := d.runCommandToWriter("diff", nil, combined)
+	outWriter := io.MultiWriter(&stdout, logWriter)
+	errWriter := io.MultiWriter(&stderr, logWriter)
+
+	err := d.runCommandToWriter("diff", nil, outWriter, errWriter)
 	if err != nil && !isAcceptableExitCode(err, 0, 2) {
-		return nil, fmt.Errorf("snapraid diff failed: %v: %s", err, buf.String())
+		return nil, fmt.Errorf("snapraid diff failed: %w\nstderr:\n%s", err, stderr.String())
 	}
 
 	var lines []string
-	scanner := bufio.NewScanner(&buf)
+	scanner := bufio.NewScanner(&stdout)
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
@@ -62,18 +65,21 @@ func (d *DefaultExecutor) Smart() error {
 	return d.runCommand("smart", nil, "smart")
 }
 
-// runCommand runs `snapraid <cmd> [--plan X] [--older-than Y]`, logging under the given tag.
+// runCommand runs `snapraid <cmd> [args...]`, logging under the given tag.
 func (d *DefaultExecutor) runCommand(cmd string, args []string, tag string) error {
- var outBuf, errBuf bytes.Buffer
- stdoutLog := newLoggerWriter(d.logger, tag) // could add ".stdout" tag
- stderrLog := newLoggerWriter(d.logger, tag) // or different severity
+	var outBuf, errBuf bytes.Buffer
 
- stdoutCombined := io.MultiWriter(&outBuf, stdoutLog)
- stderrCombined := io.MultiWriter(&errBuf, stderrLog)
+	stdoutLog := newLoggerWriter(d.logger, tag)
+	stderrLog := newLoggerWriter(d.logger, tag)
 
- if err := d.runCommandToWriter(cmd, args, stdoutCombined, stderrCombined); err != nil {
-	 return fmt.Errorf("snapraid %s failed: %w\nstderr:\n%s", cmd, err, errBuf.String())
- }
+	stdoutCombined := io.MultiWriter(&outBuf, stdoutLog)
+	stderrCombined := io.MultiWriter(&errBuf, stderrLog)
+
+	err := d.runCommandToWriter(cmd, args, stdoutCombined, stderrCombined)
+	if err != nil {
+		return fmt.Errorf("snapraid %s failed: %w\nstderr:\n%s", cmd, err, errBuf.String())
+	}
+	return nil
 }
 
 // runCommandToWriter builds and invokes the actual `snapraid <cmd> …`, writing stdout+stderr to w.
@@ -81,7 +87,7 @@ func (d *DefaultExecutor) runCommandToWriter(cmd string, args []string, stdout, 
 	baseArgs := []string{"--conf", d.configPath, "--quiet"}
 	fullArgs := append([]string{cmd}, append(baseArgs, args...)...)
 
-	fmt.Fprintf(stdout, "Running %s\n", cmd)
+	fmt.Fprintf(stdout, "Running %s\n", cmd) // nolint:errcheck
 	c := exec.Command(d.binaryPath, fullArgs...)
 	c.Stdout = stdout
 	c.Stderr = stderr

@@ -17,8 +17,8 @@ func TestValidate(t *testing.T) {
 		t.Parallel()
 
 		cfg := Config{
-			SnapraidBin: "",
-			ConfigFile:  "/some/path",
+			SnapraidBin:    "",
+			SnapraidConfig: "/some/path",
 			Scrub: ScrubOptions{
 				Plan:      utils.Ptr(50),
 				OlderThan: utils.Ptr(10),
@@ -35,8 +35,8 @@ func TestValidate(t *testing.T) {
 
 		nonexistent := filepath.Join(t.TempDir(), "no-such-binary")
 		cfg := Config{
-			SnapraidBin: nonexistent,
-			ConfigFile:  "/some/path",
+			SnapraidBin:    nonexistent,
+			SnapraidConfig: "/some/path",
 			Scrub: ScrubOptions{
 				Plan:      utils.Ptr(50),
 				OlderThan: utils.Ptr(10),
@@ -56,8 +56,8 @@ func TestValidate(t *testing.T) {
 		assert.NoError(t, os.WriteFile(binPath, []byte{}, 0o600))
 
 		cfg := Config{
-			SnapraidBin: binPath,
-			ConfigFile:  "",
+			SnapraidBin:    binPath,
+			SnapraidConfig: "",
 			Scrub: ScrubOptions{
 				Plan:      utils.Ptr(50),
 				OlderThan: utils.Ptr(10),
@@ -66,7 +66,7 @@ func TestValidate(t *testing.T) {
 
 		err := cfg.Validate()
 		assert.Error(t, err)
-		assert.EqualError(t, err, "config_file must be set")
+		assert.EqualError(t, err, "snapraid_config must be set")
 	})
 
 	t.Run("ConfigFile non-existent returns error", func(t *testing.T) {
@@ -78,8 +78,8 @@ func TestValidate(t *testing.T) {
 
 		nonexistentCfg := filepath.Join(tmpDir, "no-such-config.yml")
 		cfg := Config{
-			SnapraidBin: binPath,
-			ConfigFile:  nonexistentCfg,
+			SnapraidBin:    binPath,
+			SnapraidConfig: nonexistentCfg,
 			Scrub: ScrubOptions{
 				Plan:      utils.Ptr(50),
 				OlderThan: utils.Ptr(10),
@@ -88,7 +88,7 @@ func TestValidate(t *testing.T) {
 
 		err := cfg.Validate()
 		assert.Error(t, err)
-		assert.EqualError(t, err, "config_file not found: "+nonexistentCfg)
+		assert.EqualError(t, err, "snapraid_config not found: "+nonexistentCfg)
 	})
 
 	t.Run("Scrub.Plan negative returns error", func(t *testing.T) {
@@ -101,8 +101,8 @@ func TestValidate(t *testing.T) {
 		assert.NoError(t, os.WriteFile(cfgPath, []byte{}, 0o600))
 
 		cfg := Config{
-			SnapraidBin: binPath,
-			ConfigFile:  cfgPath,
+			SnapraidBin:    binPath,
+			SnapraidConfig: cfgPath,
 			Scrub: ScrubOptions{
 				Plan:      utils.Ptr(-5),
 				OlderThan: utils.Ptr(10),
@@ -124,8 +124,8 @@ func TestValidate(t *testing.T) {
 		assert.NoError(t, os.WriteFile(cfgPath, []byte{}, 0o600))
 
 		cfg := Config{
-			SnapraidBin: binPath,
-			ConfigFile:  cfgPath,
+			SnapraidBin:    binPath,
+			SnapraidConfig: cfgPath,
 			Scrub: ScrubOptions{
 				Plan:      utils.Ptr(150),
 				OlderThan: utils.Ptr(10),
@@ -147,7 +147,7 @@ func TestValidate(t *testing.T) {
 		assert.NoError(t, os.WriteFile(cfgPath, []byte{}, 0o600))
 
 		path := filepath.Join(tmpDir, "config.yml")
-		content := fmt.Sprintf("snapraid_bin: %s\nconfig_file: %q", binPath, cfgPath)
+		content := fmt.Sprintf("snapraid_bin: %s\nsnapraid_config: %q", binPath, cfgPath)
 		err := os.WriteFile(path, []byte(content), 0o600)
 		assert.NoError(t, err)
 
@@ -169,8 +169,8 @@ func TestValidate(t *testing.T) {
 		assert.NoError(t, os.WriteFile(cfgPath, []byte{}, 0o600))
 
 		cfg := Config{
-			SnapraidBin: binPath,
-			ConfigFile:  cfgPath,
+			SnapraidBin:    binPath,
+			SnapraidConfig: cfgPath,
 			Scrub: ScrubOptions{
 				Plan:      utils.Ptr(50),
 				OlderThan: utils.Ptr(-3),
@@ -196,7 +196,7 @@ func TestValidate(t *testing.T) {
 
 		content := fmt.Sprintf(`
 snapraid_bin: %q
-config_file: %q
+snapraid_config: %q
 scrub:
   plan: 50
 `, binPath, cfgPath)
@@ -223,8 +223,8 @@ scrub:
 		assert.NoError(t, os.WriteFile(cfgPath, []byte{}, 0o600))
 
 		cfg := Config{
-			SnapraidBin: binPath,
-			ConfigFile:  cfgPath,
+			SnapraidBin:    binPath,
+			SnapraidConfig: cfgPath,
 			Scrub: ScrubOptions{
 				Plan:      utils.Ptr(50),
 				OlderThan: utils.Ptr(10),

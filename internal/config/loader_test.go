@@ -46,7 +46,7 @@ func TestLoadConfig(t *testing.T) {
 		path := filepath.Join(tmpDir, "full.yml")
 		fullContent := `
 snapraid_bin: "/usr/bin/snapraid"
-config_file: "/etc/snapraid.conf"
+snapraid_config: "/etc/snapraid.conf"
 output_dir: "/var/lib/snapraid/output"
 
 thresholds:
@@ -78,7 +78,7 @@ notifications:
 
 		// Verify top-level fields
 		assert.Equal(t, "/usr/bin/snapraid", cfg.SnapraidBin)
-		assert.Equal(t, "/etc/snapraid.conf", cfg.ConfigFile)
+		assert.Equal(t, "/etc/snapraid.conf", cfg.SnapraidConfig)
 		assert.Equal(t, "/var/lib/snapraid/output", cfg.OutputDir)
 
 		// Verify thresholds
@@ -116,7 +116,7 @@ notifications:
 		path := filepath.Join(tmpDir, "defaults.yml")
 		defaultsContent := `
 snapraid_bin: "/usr/bin/snapraid"
-config_file: "/etc/snapraid.conf"
+snapraid_config: "/etc/snapraid.conf"
 output_dir: "/var/lib/snapraid/output"
 
 steps:
@@ -165,7 +165,7 @@ notifications:
 		path := filepath.Join(tmpDir, "zeros.yml")
 		zerosContent := `
 snapraid_bin: "/usr/bin/snapraid"
-config_file: "/etc/snapraid.conf"
+snapraid_config: "/etc/snapraid.conf"
 output_dir: "/var/lib/snapraid/output"
 
 thresholds:
@@ -228,7 +228,7 @@ func TestApplyDefaults(t *testing.T) {
 		path := filepath.Join(tmpDir, "zeros.yml")
 		zerosContent := `
 snapraid_bin: "/usr/bin/snapraid"
-config_file: "/etc/snapraid.conf"
+snapraid_config: "/etc/snapraid.conf"
 output_dir: "/var/lib/snapraid/output"
 
 notifications:
