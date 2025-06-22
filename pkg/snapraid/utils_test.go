@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os/exec"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -51,5 +52,47 @@ func TestIsAcceptableExitCode(t *testing.T) {
 		// Test with allowed = [1,2,3]
 		ok := isAcceptableExitCode(err, 1, 2, 3)
 		assert.False(t, ok)
+	})
+}
+
+func TestRunStep(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Step returns nil and duration is recorded", func(t *testing.T) {
+		t.Parallel()
+		called := false
+		var duration time.Duration
+
+		step := func() error {
+			called = true
+			time.Sleep(10 * time.Millisecond)
+			return nil
+		}
+
+		err := runStep(step, func(d time.Duration) {
+			duration = d
+		})
+
+		assert.NoError(t, err)
+		assert.True(t, called)
+		assert.GreaterOrEqual(t, duration.Milliseconds(), int64(10))
+	})
+
+	t.Run("Step returns error and duration is recorded", func(t *testing.T) {
+		t.Parallel()
+		wantErr := errors.New("step failed")
+		var duration time.Duration
+
+		step := func() error {
+			time.Sleep(5 * time.Millisecond)
+			return wantErr
+		}
+
+		err := runStep(step, func(d time.Duration) {
+			duration = d
+		})
+
+		assert.ErrorIs(t, err, wantErr)
+		assert.GreaterOrEqual(t, duration.Milliseconds(), int64(5))
 	})
 }

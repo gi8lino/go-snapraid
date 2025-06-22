@@ -146,8 +146,8 @@ There are differences!
 		// Should have run Diff once, not Sync/Scrub/Smart
 		assert.Equal(t, 1, f.DiffCount, "Diff should be called once")
 		assert.Equal(t, 0, f.SyncCount, "Sync should not be called")
-		assert.Equal(t, 0, f.ScrubCount, "Scrub should not be called")
-		assert.Equal(t, 0, f.SmartCount, "Smart should not be called")
+		assert.Equal(t, 1, f.ScrubCount, "Scrub should be called")
+		assert.Equal(t, 1, f.SmartCount, "Smart should be called")
 		assert.False(t, result.HasChanges(), "Result should report no changes")
 	})
 
