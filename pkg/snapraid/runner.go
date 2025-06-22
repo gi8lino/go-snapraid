@@ -85,13 +85,12 @@ func NewRunner(
 func (r *Runner) Run() RunResult {
 	now := time.Now()
 
-	var diffResult DiffResult
-
 	r.Timestamp = now
 	runResult := RunResult{
 		Timestamp: r.Timestamp.Format(time.RFC3339),
 	}
 
+	// Always record the total time, even if there is an error
 	start := now
 	defer func() {
 		runResult.Timings.Total = time.Since(start)
@@ -114,7 +113,7 @@ func (r *Runner) Run() RunResult {
 		return runResult
 	}
 
-	diffResult = parseDiff(diffLines)
+	diffResult := parseDiff(diffLines)
 	runResult.Result = diffResult
 
 	// DRY RUN? skip Sync/Scrub/Smart if true
