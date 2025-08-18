@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -13,6 +12,8 @@ import (
 	"github.com/gi8lino/go-snapraid/internal/logging"
 	"github.com/gi8lino/go-snapraid/internal/notify"
 	"github.com/gi8lino/go-snapraid/pkg/snapraid"
+
+	"github.com/containeroo/tinyflags"
 )
 
 // Run is the main entrypoint for the SnapRAID runner application.
@@ -20,8 +21,8 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 	// Parse CLI flags
 	flags, err := flag.ParseFlags(args, version)
 	if err != nil {
-		if errors.As(err, new(*flag.HelpRequested)) {
-			fmt.Fprint(w, err.Error()) // nolint:errcheck
+		if tinyflags.IsHelpRequested(err) || tinyflags.IsVersionRequested(err) {
+			fmt.Fprintf(w, "%s\n", err)
 			return nil
 		}
 		return fmt.Errorf("parse flags: %w", err)

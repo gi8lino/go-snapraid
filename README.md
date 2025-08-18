@@ -72,31 +72,35 @@ go-snapraid [flags]
 ### Common Flags
 
 ```
---config <path>         Path to YAML configuration file (default: /etc/snapraid_runner.conf)
---verbose, -v           Enable verbose logging
---dry-run               Skip sync; only perform a dry-run check
---no-notify             Disable Slack notifications
---output-dir <dir>      Directory to write JSON-formatted result output
+    --config CONFIG           Path to snapraid runner config (Default: /etc/snapraid-runner.yml)
+-v, --verbose                 Enable verbose logging
+    --dry-run                 Skip sync and only perform dry run
+    --output-dir OUTPUT-DIR   Directory to write JSON result output
 
---touch                 Enable the `touch` step
---no-touch              Disable the `touch` step
---scrub                 Enable the `scrub` step
---no-scrub              Disable the `scrub` step
---smart                 Enable the `smart` step
---no-smart              Disable the `smart` step
+-l, --log-format <text|json>  Log format (Default: text)
 
---no-threshold-add      Disable threshold check for added files
---no-threshold-del      Disable threshold check for removed files
---no-threshold-up       Disable threshold check for updated files
---no-threshold-cp       Disable threshold check for copied files
---no-threshold-mv       Disable threshold check for moved files
---no-threshold-rs       Disable threshold check for restored files
+    --no-notify               Disable Slack notifications
 
---plan <int>            Scrub plan percentage (0–100) (default: 22)
---older-than <int>      Scrub files older than N days (default: 12)
+    --touch                   Enable touch step [Group: steps (One Of)]
+    --no-touch                Disable touch step [Group: steps (One Of)]
 
---help, -h              Show help and exit
---version               Show version and exit
+    --scrub                   Enable scrub step [Group: scrub (One Of)]
+    --no-scrub                Disable scrub step [Group: scrub (One Of)]
+
+    --smart                   Enable smart step [Group: smart (One Of)]
+    --no-smart                Disable smart step [Group: smart (One Of)]
+
+    --no-threshold-add        Disable threshold check for added files
+    --no-threshold-del        Disable threshold check for removed files
+    --no-threshold-up         Disable threshold check for updated files
+    --no-threshold-cp         Disable threshold check for copied files
+    --no-threshold-mv         Disable threshold check for moved files
+    --no-threshold-rs         Disable threshold check for restored files
+
+    --plan PLAN               Scrub plan percentage (0–100) (Default: 22)
+    --older-than OLDER-THAN   Scrub files older than N days (Default: 12)
+
+-h, --help                    Show help
 ```
 
 - If both an enabling flag (e.g., `--scrub`) and its disabling counterpart (e.g., `--no-scrub`) are provided, the program exits with an error.

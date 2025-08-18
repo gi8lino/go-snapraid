@@ -11,13 +11,6 @@ import (
 func TestParseFlags(t *testing.T) {
 	t.Parallel()
 
-	t.Run("Error Message", func(t *testing.T) {
-		t.Parallel()
-
-		err := &HelpRequested{Message: "This is a help message"}
-		assert.Equal(t, "This is a help message", err.Error(), "Error() should return the correct message")
-	})
-
 	t.Run("No flags", func(t *testing.T) {
 		t.Parallel()
 
@@ -50,10 +43,32 @@ func TestParseFlags(t *testing.T) {
 
 		_, err := ParseFlags([]string{"--help"}, "v1.0.0")
 		assert.Error(t, err)
-		helpErr, ok := err.(*HelpRequested)
-		assert.True(t, ok)
-		// Should contain usage prefix
-		assert.Contains(t, helpErr.Message, "Usage: snapraid-runner")
+		expected := `Usage: snapraid-runner [flags]
+Flags:
+        --config CONFIG           Path to snapraid runner config (Default: /etc/snapraid-runner.yml)
+    -v, --verbose                 Enable verbose logging
+        --dry-run                 Skip sync and only perform dry run
+        --output-dir OUTPUT-DIR   Directory to write JSON result output
+    -l, --log-format <text|json>  Log format (Default: text)
+        --no-notify               Disable Slack notifications
+        --touch                   Enable touch step [Group: steps (One Of)]
+        --no-touch                Disable touch step [Group: steps (One Of)]
+        --scrub                   Enable scrub step [Group: scrub (One Of)]
+        --no-scrub                Disable scrub step [Group: scrub (One Of)]
+        --smart                   Enable smart step [Group: smart (One Of)]
+        --no-smart                Disable smart step [Group: smart (One Of)]
+        --no-threshold-add        Disable threshold check for added files
+        --no-threshold-del        Disable threshold check for removed files
+        --no-threshold-up         Disable threshold check for updated files
+        --no-threshold-cp         Disable threshold check for copied files
+        --no-threshold-mv         Disable threshold check for moved files
+        --no-threshold-rs         Disable threshold check for restored files
+        --plan PLAN               Scrub plan percentage (0–100) (Default: 22)
+        --older-than OLDER-THAN   Scrub files older than N days (Default: 12)
+    -h, --help                    Show help
+        --version                 Show version
+`
+		assert.EqualError(t, err, expected)
 	})
 
 	t.Run("Version flag", func(t *testing.T) {
@@ -61,9 +76,7 @@ func TestParseFlags(t *testing.T) {
 
 		_, err := ParseFlags([]string{"--version"}, "v9.8.7")
 		assert.Error(t, err)
-		verErr, ok := err.(*HelpRequested)
-		assert.True(t, ok)
-		assert.Equal(t, "snapraid-runner version: v9.8.7\n", verErr.Message)
+		assert.EqualError(t, err, "v9.8.7")
 	})
 
 	t.Run("Touch and no-touch", func(t *testing.T) {
@@ -71,7 +84,7 @@ func TestParseFlags(t *testing.T) {
 
 		_, err := ParseFlags([]string{"--touch", "--no-touch"}, "v1.0.0")
 		assert.Error(t, err)
-		assert.EqualError(t, err, "cannot use both --touch and --no-touch")
+		assert.EqualError(t, err, "only one of the flags in group \"steps\" may be used: --touch vs --no-touch")
 	})
 
 	t.Run("Scrub and no-scrub", func(t *testing.T) {
@@ -79,7 +92,7 @@ func TestParseFlags(t *testing.T) {
 
 		_, err := ParseFlags([]string{"--scrub", "--no-scrub"}, "v1.0.0")
 		assert.Error(t, err)
-		assert.EqualError(t, err, "cannot use both --scrub and --no-scrub")
+		assert.EqualError(t, err, "only one of the flags in group \"scrub\" may be used: --scrub vs --no-scrub")
 	})
 
 	t.Run("Smart and no-smart", func(t *testing.T) {
@@ -87,7 +100,7 @@ func TestParseFlags(t *testing.T) {
 
 		_, err := ParseFlags([]string{"--smart", "--no-smart"}, "v1.0.0")
 		assert.Error(t, err)
-		assert.EqualError(t, err, "cannot use both --smart and --no-smart")
+		assert.EqualError(t, err, "only one of the flags in group \"smart\" may be used: --smart vs --no-smart")
 	})
 
 	t.Run("Step and threshold resolution", func(t *testing.T) {

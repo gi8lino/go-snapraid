@@ -1,20 +1,13 @@
 package flag
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 
 	"github.com/gi8lino/go-snapraid/internal/logging"
-	flag "github.com/spf13/pflag"
+
+	"github.com/containeroo/tinyflags"
 )
-
-// HelpRequested indicates that the user explicitly requested help or version output.
-type HelpRequested struct {
-	Message string // Message is the usage or version string to display.
-}
-
-func (e *HelpRequested) Error() string { return e.Message }
 
 // ThresholdOptions defines which threshold checks are enabled or disabled.
 type ThresholdOptions struct {
@@ -50,85 +43,85 @@ type Options struct {
 // ParseFlags parses CLI flags into a structured Options instance. It also handles
 // --help and --version, returning a HelpRequested error when appropriate.
 func ParseFlags(args []string, version string) (Options, error) {
-	fs := flag.NewFlagSet("snapraid-runner", flag.ContinueOnError)
-	fs.SortFlags = false
+	opts := Options{}
+	tf := tinyflags.NewFlagSet("snapraid-runner", tinyflags.ContinueOnError)
+	tf.Version(version)
 
 	// Basic
-	configFile := fs.String("config", "/etc/snapraid-runner.yml", "Path to snapraid runner config")
-	verbose := fs.BoolP("verbose", "v", false, "Enable verbose logging")
-	dryRun := fs.Bool("dry-run", false, "Skip sync and only perform dry run")
-	outputDir := fs.String("output-dir", "", "Directory to write JSON result output")
+	tf.StringVar(&opts.ConfigFile, "config", "/etc/snapraid-runner.yml", "Path to snapraid runner config").
+		Value()
+	tf.BoolVar(&opts.Verbose, "verbose", false, "Enable verbose logging").
+		Short("v").
+		Value()
+	tf.BoolVar(&opts.DryRun, "dry-run", false, "Skip sync and only perform dry run").Value()
+	tf.StringVar(&opts.OutputDir, "output-dir", "", "Directory to write JSON result output").Value()
+	logFormat := tf.String("log-format", "text", "Log format").
+		Choices("text", "json").
+		HideAllowed().
+		Short("l").
+		Value()
 
 	// Notifications
-	noNotify := fs.Bool("no-notify", false, "Disable Slack notifications")
+	tf.BoolVar(&opts.NoNotify, "no-notify", false, "Disable Slack notifications").Value()
 
 	// Step toggles
-	touch := fs.Bool("touch", false, "Enable touch step")
-	noTouch := fs.Bool("no-touch", false, "Disable touch step")
-	scrub := fs.Bool("scrub", false, "Enable scrub step")
-	noScrub := fs.Bool("no-scrub", false, "Disable scrub step")
-	smart := fs.Bool("smart", false, "Enable smart step")
-	noSmart := fs.Bool("no-smart", false, "Disable smart step")
+	touch := tf.Bool("touch", false, "Enable touch step").
+		OneOfGroup("steps").
+		Value()
+	noTouch := tf.Bool("no-touch", false, "Disable touch step").
+		OneOfGroup("steps").
+		Value()
+
+	scrub := tf.Bool("scrub", false, "Enable scrub step").
+		OneOfGroup("scrub").
+		Value()
+	noScrub := tf.Bool("no-scrub", false, "Disable scrub step").
+		OneOfGroup("scrub").
+		Value()
+
+	smart := tf.Bool("smart", false, "Enable smart step").
+		OneOfGroup("smart").
+		Value()
+	noSmart := tf.Bool("no-smart", false, "Disable smart step").
+		OneOfGroup("smart").
+		Value()
 
 	// Threshold disablers
-	noAdd := fs.Bool("no-threshold-add", false, "Disable threshold check for added files")
-	noDel := fs.Bool("no-threshold-del", false, "Disable threshold check for removed files")
-	noUp := fs.Bool("no-threshold-up", false, "Disable threshold check for updated files")
-	noCp := fs.Bool("no-threshold-cp", false, "Disable threshold check for copied files")
-	noMv := fs.Bool("no-threshold-mv", false, "Disable threshold check for moved files")
-	noRs := fs.Bool("no-threshold-rs", false, "Disable threshold check for restored files")
+	noAdd := tf.Bool("no-threshold-add", false, "Disable threshold check for added files").Value()
+	noDel := tf.Bool("no-threshold-del", false, "Disable threshold check for removed files").Value()
+	noUp := tf.Bool("no-threshold-up", false, "Disable threshold check for updated files").Value()
+	noCp := tf.Bool("no-threshold-cp", false, "Disable threshold check for copied files").Value()
+	noMv := tf.Bool("no-threshold-mv", false, "Disable threshold check for moved files").Value()
+	noRs := tf.Bool("no-threshold-rs", false, "Disable threshold check for restored files").Value()
 
 	// Scrub options
-	scrubPlan := fs.Int("plan", 22, "Scrub plan percentage (0–100)")
-	scrubOlder := fs.Int("older-than", 12, "Scrub files older than N days")
-
-	// Help/version flags
-	var showHelp, showVersion bool
-	fs.BoolVarP(&showHelp, "help", "h", false, "Show help and exit")
-	fs.BoolVar(&showVersion, "version", false, "Show version and exit")
-
-	// Custom usage output
-	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: %s [flags]\n\nFlags:\n", fs.Name()) // nolint:errcheck
-		fs.PrintDefaults()
-	}
+	tf.IntVar(&opts.ScrubPlan, "plan", 22, "Scrub plan percentage (0–100)").
+		Validate(func(i int) error {
+			if i < 0 || i > 100 {
+				return fmt.Errorf("scrub plan must be between 0 and 100")
+			}
+			return nil
+		}).
+		Value()
+	tf.IntVar(&opts.ScrubOlder, "older-than", 12, "Scrub files older than N days").Value()
 
 	// Parse args
-	if err := fs.Parse(args); err != nil {
+	if err := tf.Parse(args); err != nil {
 		return Options{}, err
 	}
 
-	if showVersion {
-		return Options{}, &HelpRequested{Message: fmt.Sprintf("%s version: %s\n", fs.Name(), version)}
-	}
-
-	if showHelp {
-		var buf bytes.Buffer
-		fs.SetOutput(&buf)
-		fs.Usage()
-		return Options{}, &HelpRequested{Message: buf.String()}
-	}
-
-	// Mutual exclusivity checks for step flags
-	if fs.Changed("touch") && fs.Changed("no-touch") {
-		return Options{}, fmt.Errorf("cannot use both --touch and --no-touch")
-	}
-	if fs.Changed("scrub") && fs.Changed("no-scrub") {
-		return Options{}, fmt.Errorf("cannot use both --scrub and --no-scrub")
-	}
-	if fs.Changed("smart") && fs.Changed("no-smart") {
-		return Options{}, fmt.Errorf("cannot use both --smart and --no-smart")
-	}
-
 	// Resolve step toggles: explicit "no-" flags override enables
-	steps := StepsOptions{
+	opts.Steps = StepsOptions{
 		NoTouch: *touch && !*noTouch,
 		NoScrub: *scrub && !*noScrub,
 		NoSmart: *smart && !*noSmart,
 	}
 
+	// Resolve log format
+	opts.LogFormat = logging.LogFormat(*logFormat)
+
 	// Resolve thresholds: enabled by default unless a "no-threshold-<type>" flag was set
-	thresholds := ThresholdOptions{
+	opts.Thresholds = ThresholdOptions{
 		NoAdd:     !*noAdd,
 		NoRemove:  !*noDel,
 		NoUpdate:  !*noUp,
@@ -137,18 +130,7 @@ func ParseFlags(args []string, version string) (Options, error) {
 		NoRestore: !*noRs,
 	}
 
-	return Options{
-		LogFormat:  logging.LogFormatText,
-		ConfigFile: *configFile,
-		DryRun:     *dryRun,
-		Verbose:    *verbose,
-		OutputDir:  *outputDir,
-		NoNotify:   *noNotify,
-		Steps:      steps,
-		Thresholds: thresholds,
-		ScrubPlan:  *scrubPlan,
-		ScrubOlder: *scrubOlder,
-	}, nil
+	return opts, nil
 }
 
 // Validate ensures that the specified configuration file exists on disk.
