@@ -75,5 +75,11 @@ func formatSlackSummary(result snapraid.RunResult, ts time.Time, timings snaprai
 		lines = append(lines, timingLines...)
 	}
 
+	// Show errors
+	if result.Error != nil {
+		lines = append(lines, "", "Errors:")
+		lines = append(lines, result.Error.Error())
+	}
+
 	return strings.Join(lines, "\n")
 }
