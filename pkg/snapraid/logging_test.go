@@ -60,7 +60,7 @@ func TestLoggerWriter_Write(t *testing.T) {
 
 		var collected []entry
 		logger := newTestLogger(&collected)
-		lw := newLoggerWriter(logger, "testcomp")
+		lw := newLoggerWriter(logger, "testcomp", slog.LevelInfo)
 		input := []byte("hello world\n")
 		n, err := lw.Write(input)
 		assert.NoError(t, err)
@@ -80,7 +80,7 @@ func TestLoggerWriter_Write(t *testing.T) {
 
 		var collected []entry
 		logger := newTestLogger(&collected)
-		lw := newLoggerWriter(logger, "multi")
+		lw := newLoggerWriter(logger, "multi", slog.LevelDebug)
 		input := []byte("line1\nline2\n")
 		n, err := lw.Write(input)
 		assert.NoError(t, err)
@@ -98,7 +98,7 @@ func TestLoggerWriter_Write(t *testing.T) {
 
 		var collected []entry
 		logger := newTestLogger(&collected)
-		lw := newLoggerWriter(logger, "partial")
+		lw := newLoggerWriter(logger, "partial", slog.LevelDebug)
 
 		// First write: no newline, should buffer
 		part := []byte("incomplete")
@@ -124,7 +124,7 @@ func TestLoggerWriter_Write(t *testing.T) {
 
 		var collected []entry
 		logger := newTestLogger(&collected)
-		lw := newLoggerWriter(logger, "skip")
+		lw := newLoggerWriter(logger, "skip", slog.LevelDebug)
 		input := []byte("\n   \nvalid\n\n")
 		n, err := lw.Write(input)
 		assert.NoError(t, err)
@@ -145,7 +145,7 @@ func TestLoggerWriter_Flush(t *testing.T) {
 
 		var collected []entry
 		logger := newTestLogger(&collected)
-		lw := newLoggerWriter(logger, "no_partial")
+		lw := newLoggerWriter(logger, "no_partial", slog.LevelDebug)
 
 		// No writes at all; Flush should not produce entries
 		lw.Flush()
@@ -164,7 +164,7 @@ func TestLoggerWriter_Flush(t *testing.T) {
 
 		var collected []entry
 		logger := newTestLogger(&collected)
-		lw := newLoggerWriter(logger, "flush")
+		lw := newLoggerWriter(logger, "flush", slog.LevelDebug)
 
 		// Write a partial line without newline
 		_, _ = lw.Write([]byte("leftover"))

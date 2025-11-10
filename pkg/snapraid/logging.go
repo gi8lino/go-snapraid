@@ -2,6 +2,7 @@ package snapraid
 
 import (
 	"bytes"
+	"context"
 	"log/slog"
 	"strings"
 	"sync"
@@ -12,14 +13,16 @@ import (
 type loggerWriter struct {
 	logger *slog.Logger // logger is the structured slog.Logger instance to send each completed line.
 	tag    string       // tag is the component name to use for each line.
+	level  slog.Level   // level is the slog.Level to use for each line.
 	buf    bytes.Buffer // buf holds partial data until a newline is encountered.
 	mu     sync.Mutex   // mu protects buf if Write is called concurrently.
 }
 
 // newLoggerWriter constructs a loggerWriter that tags every line with tag.
-func newLoggerWriter(logger *slog.Logger, tag string) *loggerWriter {
+func newLoggerWriter(logger *slog.Logger, tag string, level slog.Level) *loggerWriter {
 	return &loggerWriter{
 		logger: logger,
+		level:  level,
 		tag:    tag,
 	}
 }
@@ -57,9 +60,7 @@ func (lw *loggerWriter) Write(p []byte) (n int, err error) {
 
 		// If the trimmed line is empty, skip logging
 		if line != "" {
-			lw.logger.Info(line,
-				"tag", lw.tag,
-			)
+			lw.logger.Log(context.Background(), lw.level, line, "tag", lw.tag)
 		}
 
 		// Reset the buffer, because we’ve consumed everything up to the newline.
@@ -87,11 +88,7 @@ func (lw *loggerWriter) Flush() {
 
 	// We log it as a normal message, but add "partial_noNL": true so that
 	// if you’re looking at the structured logs, you know this line lacked a newline.
-	lw.logger.Info(
-		line,
-		"tag", lw.tag,
-		"partial_noNL", true,
-	)
+	lw.logger.Log(context.Background(), lw.level, line, "tag", lw.tag, "partial_noNL", true)
 
 	// Clear the buffer
 	lw.buf.Reset()

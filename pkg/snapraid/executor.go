@@ -28,10 +28,8 @@ func (d *DefaultExecutor) Touch() error {
 // Diff shells out to `snapraid diff`, logs under "diff", and returns all stdout lines.
 func (d *DefaultExecutor) Diff() ([]string, error) {
 	var stdout, stderr bytes.Buffer
-	logWriter := newLoggerWriter(d.logger, "diff")
-
-	outWriter := io.MultiWriter(&stdout, logWriter)
-	errWriter := io.MultiWriter(&stderr, logWriter)
+	outWriter := io.MultiWriter(&stdout, newLoggerWriter(d.logger, "diff", slog.LevelInfo))
+	errWriter := io.MultiWriter(&stderr, newLoggerWriter(d.logger, "diff", slog.LevelError))
 
 	err := d.runCommandToWriter("diff", nil, outWriter, errWriter)
 	if err != nil && !isAcceptableExitCode(err, 0, 2) {
@@ -69,8 +67,8 @@ func (d *DefaultExecutor) Smart() error {
 func (d *DefaultExecutor) runCommand(cmd string, args []string, tag string) error {
 	var outBuf, errBuf bytes.Buffer
 
-	stdoutLog := newLoggerWriter(d.logger, tag)
-	stderrLog := newLoggerWriter(d.logger, tag)
+	stdoutLog := newLoggerWriter(d.logger, tag, slog.LevelInfo)
+	stderrLog := newLoggerWriter(d.logger, tag, slog.LevelError)
 
 	stdoutCombined := io.MultiWriter(&outBuf, stdoutLog)
 	stderrCombined := io.MultiWriter(&errBuf, stderrLog)

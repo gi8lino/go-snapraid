@@ -22,7 +22,7 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 	flags, err := flag.ParseFlags(args, version)
 	if err != nil {
 		if tinyflags.IsHelpRequested(err) || tinyflags.IsVersionRequested(err) {
-			fmt.Fprintf(w, "%s\n", err)
+			fmt.Fprintf(w, "%s\n", err) // nolint:errcheck
 			return nil
 		}
 		return fmt.Errorf("parse flags: %w", err)
@@ -81,6 +81,11 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 	// Run the SnapRAID pipeline
 	result := runner.Run()
 
+	if result.Error != nil {
+		logger.Error("SnapRAID run failed", "error", result.Error, "tag", "runner")
+		return result.Error
+	}
+
 	// Log change summary
 	if !result.HasChanges() {
 		logger.Info("No changes detected")
@@ -93,6 +98,7 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 			"moved", len(result.Result.Moved),
 			"copied", len(result.Result.Copied),
 			"restored", len(result.Result.Restored),
+			"errors", result.Error != nil,
 			"tag", "runner",
 		)
 	}
