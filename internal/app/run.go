@@ -20,18 +20,8 @@ import (
 func Run(ctx context.Context, version, commit string, args []string, w io.Writer) error {
 	// Parse CLI flags
 	flags, err := flag.ParseFlags(args, version)
-	if err != nil {
-		if tinyflags.IsHelpRequested(err) || tinyflags.IsVersionRequested(err) {
-			fmt.Fprintf(w, "%s\n", err) // nolint:errcheck
-			return nil
-		}
-		return fmt.Errorf("parse flags: %w", err)
-	}
-	if err := flags.Validate(); err != nil {
-		return fmt.Errorf("validate flags: %w", err)
-	}
 
-	// Setup logger
+	// Setup logger immediately so startup errors are correctly logged.
 	logger := logging.SetupLogger(flags.LogFormat, w)
 	logger.Info("Starting snapraid runner",
 		"version", version,
@@ -39,16 +29,31 @@ func Run(ctx context.Context, version, commit string, args []string, w io.Writer
 		"tag", "runner",
 	)
 
+	if err != nil {
+		if tinyflags.IsHelpRequested(err) || tinyflags.IsVersionRequested(err) {
+			fmt.Fprintf(w, "%s\n", err) // nolint:errcheck
+			return nil
+		}
+		logger.Error("Failed to parse flags", "error", err, "tag", "runner")
+		return err
+	}
+	if err := flags.Validate(); err != nil {
+		logger.Error("Failed to validate flags", "error", err, "tag", "runner")
+		return err
+	}
+
 	// Load YAML config
 	cfg, err := config.LoadConfig(flags.ConfigFile)
 	if err != nil {
-		return fmt.Errorf("load config: %w", err)
+		logger.Error("Failed to load config", "error", err, "tag", "runner")
+		return err
 	}
 	// Fill in any missing defaults now that we have unmarshaled into cfg.
 	cfg.ApplyDefaults()
 
 	if err := cfg.Validate(); err != nil {
-		return fmt.Errorf("validate config: %w", err)
+		logger.Error("Failed to validate config", "error", err, "tag", "runner")
+		return err
 	}
 
 	// Apply CLI overrides on top of config

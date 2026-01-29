@@ -31,7 +31,7 @@ func TestRun(t *testing.T) {
 		var stdout bytes.Buffer
 		err := Run(context.Background(), "vTEST", "commit123", []string{"--config", cfgPath}, &stdout)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "validate config: snapraid_bin not found: invalid")
+		assert.EqualError(t, err, "snapraid_bin not found: invalid")
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -118,7 +118,7 @@ notifications:
 		var stdout bytes.Buffer
 		err := Run(context.Background(), "vTEST", "commitErr", []string{"--config", "/nonexistent/config.yml"}, &stdout)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "validate flags: snapraid config file not found: /nonexistent/config.yml")
+		assert.EqualError(t, err, "snapraid config file not found: /nonexistent/config.yml")
 	})
 
 	t.Run("Invalid config file", func(t *testing.T) {
@@ -130,7 +130,7 @@ notifications:
 
 		err := Run(context.Background(), "vTEST", "commitErr2", []string{"--config", cfgPath}, &stdout)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "load config: invalid YAML: yaml: did not find expected key")
+		assert.EqualError(t, err, "invalid YAML: yaml: did not find expected key")
 	})
 
 	t.Run("Invalid CLI flags", func(t *testing.T) {
@@ -139,7 +139,7 @@ notifications:
 		var stdout bytes.Buffer
 		err := Run(context.Background(), "vVER", "commitCLI", []string{"--unknown"}, &stdout)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "parse flags: unknown flag: --unknown")
+		assert.EqualError(t, err, "unknown flag: --unknown")
 	})
 
 	t.Run("Missing config file", func(t *testing.T) {
@@ -148,6 +148,6 @@ notifications:
 		var stdout bytes.Buffer
 		err := Run(context.Background(), "vVER2", "commitCLI2", []string{}, &stdout)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "validate flags: snapraid config file not found: /etc/snapraid-runner.yml")
+		assert.EqualError(t, err, "snapraid config file not found: /etc/snapraid-runner.yml")
 	})
 }
