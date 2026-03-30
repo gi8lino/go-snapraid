@@ -1,5 +1,9 @@
 # SnapRAID Runner
 
+> [!WARNING]
+> **Deprecated:** This project is no longer recommended for new use.
+> Please use [`snapraid-daemon`](https://github.com/amadvance/snapraid-daemon/) instead, which is the actively maintained replacement.
+
 SnapRAID Runner is a command-line utility that automates SnapRAID operations, including syncing, scrubbing, touch, and smart checks. It wraps the SnapRAID binary with additional threshold checks, configurable steps, and optional Slack notifications. Configuration is provided via a YAML file, and all behaviors can be adjusted through CLI flags.
 
 ## Features
